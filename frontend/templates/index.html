@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Classificador de Emails</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+<main class="container">
+    <header class="header">
+        <h1>Classificação Automática de Emails</h1>
+        <p class="subtitle">
+            Processamento inteligente de emails corporativos
+        </p>
+    </header>
+
+    <section class="card">
+        <form method="POST" enctype="multipart/form-data">
+
+            <label for="email_text">Digite sua mensagem:</label>
+            <textarea
+                id="email-text"
+                name="email_text"
+                placeholder="Cole o conteúdo do email aqui..."
+            >{{ content }}</textarea>
+
+            <div class="divider">
+                <span>Ou</span>
+            </div>
+
+            <label class="file-upload">
+                <input
+                    id="file-input"
+                    type="file"
+                    name="email_file"
+                    accept=".txt,.pdf"
+                >
+                <span>Envie um arquivo (.txt ou .pdf)</span>
+            </label>
+
+            <button id="submit-btn" type="submit">
+                Processar Email
+            </button>
+        </form>
+    </section>
+
+    {% if category %}
+    <section class="result-card">
+        <div class="badge {{ category|lower }}">
+            {{ category }}
+        </div>
+
+        <h3>Resposta Sugerida</h3>
+        <p class="reply">{{ reply }}</p>
+    </section>
+    {% endif %}
+
+</main>
+
+<!-- JS de UX (não interfere no backend) -->
+<script src="/static/ui.js"></script>
+
+</body>
+</html>
