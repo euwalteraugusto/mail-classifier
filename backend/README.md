@@ -1,185 +1,93 @@
-Mail Classifier Service
+# 📧 Mail Classifier Service
 
-Serviço backend para classificação automática de emails corporativos como Produtivos ou Improdutivos, utilizando uma abordagem híbrida baseada em heurísticas semânticas, processamento de linguagem natural (NLP) e classificação zero-shot com modelos pré-treinados.
+Serviço backend para **classificação automática de emails corporativos** como **Produtivos** ou **Improdutivos**, utilizando uma abordagem **híbrida** baseada em **heurísticas semânticas**, **processamento de linguagem natural (NLP)** e **classificação zero-shot** com modelos pré-treinados.
 
-O projeto foi desenvolvido com foco em clareza arquitetural, baixa complexidade operacional e decisões explicáveis, servindo tanto como solução funcional quanto como material de estudo.
+Projeto desenvolvido com foco em **clareza arquitetural**, **baixa complexidade operacional** e **decisões explicáveis**, servindo tanto como solução funcional quanto como material de estudo.
 
-🎯 Objetivo do Projeto
+---
+
+## 🎯 Objetivo do Projeto
 
 Demonstrar uma arquitetura simples, extensível e segura para classificação de emails, priorizando:
 
-Alta taxa de assertividade
+- ✅ Alta taxa de assertividade  
+- 🔗 Baixo acoplamento entre regras e modelo  
+- 🧠 Decisões explicáveis  
+- 🛡️ Redução de falsos negativos críticos  
+- 🔄 Facilidade de evolução futura  
 
-Baixo acoplamento entre regras e modelo
+O projeto **não depende de dataset próprio** nem de treinamento supervisionado, sendo ideal para provas de conceito e estudos arquiteturais.
 
-Redução de falsos negativos críticos
+---
 
-Facilidade de evolução futura
+## 🧠 Estratégia de Classificação
 
-Decisões de classificação explicáveis
+A classificação segue um **pipeline híbrido em camadas**, onde cada etapa tem uma responsabilidade clara.
 
-Este projeto não depende de dataset próprio nem de treinamento supervisionado, tornando-o ideal para cenários iniciais ou provas de conceito.
+### 1️⃣ Heurísticas Semânticas (Fast Path)
 
-🧠 Estratégia de Classificação
+Aplicadas antes do uso de modelos NLP, para resolver casos óbvios:
 
-A classificação segue um pipeline híbrido em camadas, onde cada etapa tem uma responsabilidade clara:
+- Emails muito curtos  
+- Mensagens puramente cordiais  
+- Confirmações simples sem solicitação implícita  
 
-1. Heurísticas Semânticas (Fast Path)
+Benefícios:
 
-Aplicadas antes do uso do modelo de NLP, para lidar com casos óbvios:
+- Redução de custo computacional  
+- Maior previsibilidade  
+- Menor dependência do modelo  
 
-Emails muito curtos
+---
 
-Mensagens puramente cordiais
+### 2️⃣ Classificação Zero-Shot (Core NLP)
 
-Confirmações simples sem solicitação implícita
+Para mensagens não resolvidas pelas heurísticas, utiliza-se o modelo:
 
-Essas regras:
-
-Reduzem custo computacional
-
-Aumentam previsibilidade
-
-Evitam overfitting semântico do modelo
-
-2. Classificação Zero-Shot (Core NLP)
-
-Para mensagens não resolvidas pelas heurísticas, é utilizado o modelo:
-
-facebook/bart-large-mnli
+- **facebook/bart-large-mnli**
 
 Características:
 
-Zero-shot classification (não requer treino adicional)
+- Zero-shot classification (dispensa treinamento)  
+- Avaliação semântica baseada em hipóteses  
+- Boa generalização para linguagem corporativa  
 
-Avalia hipóteses semânticas completas
+Hipótese utilizada:
 
-Boa capacidade de generalização para textos corporativos
+> _"Este email é **Produtivo** e requer ação, resposta, análise ou tomada de decisão."_
 
-Exemplo de hipótese utilizada:
+---
 
-“Este email é Produtivo e requer ação, resposta, análise ou tomada de decisão.”
-
-3. Threshold de Confiança + Fallback Seguro
+### 3️⃣ Threshold de Confiança + Fallback Seguro
 
 Após a inferência:
 
-Se a confiança do modelo for baixa, o sistema assume Produtivo
+- Caso a **confiança do modelo seja baixa**, o sistema assume **Produtivo**
+- Decisão **intencionalmente conservadora**
 
-Essa decisão é intencional e conservadora
+📌 **Motivação:**  
+Em ambientes corporativos, **perder um email relevante é mais crítico** do que responder algo irrelevante.
 
-Motivação:
+---
 
-Em ambientes corporativos, perder um email relevante é mais crítico do que responder algo desnecessário
+## 🏗️ Arquitetura do Sistema
 
-🏗️ Arquitetura do Sistema
+```text
 mail-classifier/
 ├── backend/
 │   ├── app.py              # API Flask (ponto de entrada)
-│   ├── ai_service.py       # Lógica de classificação e geração de resposta
-│   ├── nlp_utils.py        # Utilitários NLP (normalização, lematização, etc.)
+│   ├── ai_service.py       # Classificação e geração de resposta
+│   ├── nlp_utils.py        # Utilitários NLP
 │   ├── requirements.txt    # Dependências do backend
-│   ├── examples/           # Exemplos de emails para teste
-│   └── README.md           # Documentação específica do backend
+│   ├── examples/           # Exemplos de emails
+│   └── README.md           # Documentação do backend
 │
 ├── frontend/
 │   ├── templates/
-│   │   └── index.html      # Interface web simples
+│   │   └── index.html      # Interface web
 │   └── static/
 │       ├── styles.css
 │       └── ui.js
 │
 ├── .gitignore
-└── README.md               # Documentação principal
-
-🔧 Tecnologias Utilizadas
-Backend
-
-Python 3
-
-Flask
-
-Transformers (Hugging Face)
-
-NLTK
-
-BART MNLI (facebook/bart-large-mnli)
-
-Frontend
-
-HTML
-
-CSS
-
-JavaScript (fetch API)
-
-▶️ Como Executar o Projeto
-1. Clonar o repositório
-git clone https://github.com/euwalteraugusto/mail-classifier.git
-cd mail-classifier
-
-2. Criar e ativar ambiente virtual
-python -m venv venv
-
-
-Windows
-
-venv\Scripts\activate
-
-
-Linux / macOS
-
-source venv/bin/activate
-
-3. Instalar dependências
-pip install -r backend/requirements.txt
-
-4. Executar o servidor
-python backend/app.py
-
-
-A aplicação estará disponível em:
-
-http://127.0.0.1:5000
-
-📌 Exemplo de Uso
-
-Entrada:
-
-"Algum retorno referente ao arquivo que enviamos anteriormente?"
-
-
-Classificação esperada:
-
-Produtivo
-
-⚠️ Limitações Conhecidas
-
-Classificação baseada apenas em conteúdo textual
-
-Modelo não foi ajustado com dados específicos do domínio
-
-Linguagem informal ou ambígua pode gerar falsos positivos
-
-Não há persistência de histórico ou métricas
-
-Essas limitações são conscientes e fazem parte da proposta didática do projeto.
-
-🚀 Possíveis Evoluções
-
-Cache de inferências
-
-Métricas de confiança expostas via API
-
-Logs explicáveis por decisão
-
-Ajuste dinâmico de threshold
-
-Integração com serviços de email reais
-
-Fine-tuning supervisionado opcional
-
-👤 Autor
-
-Walter Augusto
-Estudante e desenvolvedor em formação, com foco em engenharia de software, automação e sistemas inteligentes.
+└── README.md
