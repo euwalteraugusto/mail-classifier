@@ -50,16 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
         resultCard.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
-    /* ---------- Simulação de ciclo de UX ---------- */
-    button.addEventListener("click", () => {
-        setLoading(true);
-
-        setTimeout(() => {
-            setLoading(false);
-            showResult();
-        }, 600);
-    });
-
     /* ---------- Acessibilidade ---------- */
     textarea.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && e.ctrlKey) {
