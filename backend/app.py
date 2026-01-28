@@ -23,90 +23,54 @@ app = Flask(
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    """
-    Rota principal da aplicação.
-
-    Fluxo de execução:
-    1. **Receber entrada do usuário**:
-       - Se um arquivo for enviado (prioridade), extrai o conteúdo.
-       - Caso contrário, usa o texto digitado manualmente.
-    2. **Pré-processamento**:
-       - Normaliza o texto usando "preprocess_text" (remoção de ruído, stopwords, etc.).
-    3. **Classificação**:
-       - Usa "classify_email" para determinar se o email é "Produtivo" ou "Improdutivo".
-    4. **Resposta automática**:
-       - Gera uma resposta padrão com "generate_reply", baseada na categoria.
-    5. **Renderização**:
-       - Retorna o template "index.html" com os resultados.
-
-    Returns:
-        HTML: Página renderizada com categoria, resposta e conteúdo original.
-    """
-
-    # Inicializa variáveis para evitar erros caso não haja POST.
+    # --- 1. Inicialização de variáveis ---
+    # Definir aqui no topo garante que o 'render_template' sempre as encontre,
+    # mesmo que o bloco POST não seja executado (evita UnboundLocalError).
     category = None
     reply = None
     content = ''
+    source = None  # Inicializamos a nova variável aqui
 
     if request.method == 'POST':
-
         # --- 1. Prioridade: arquivo enviado ---
-        # Se o usuário anexa um arquivo, tenta processá-lo primeiro.
         file = request.files.get('email_file')
 
         if file and file.filename:
-
-            # --- Caso TXT ---
-            # Leitura simples do conteúdo como string UTF-8.
             if file.filename.lower().endswith('.txt'):
                 content = file.read().decode('utf-8', errors='ignore')
 
-            # --- Caso PDF ---
-            # Usa pdfplumber para extrair texto de cada página.
-            # pdfplumber -> extração precisa de texto,
-            # preservando estrutura básica sem precisar de OCR (Reconhecimento Óptico de Caracteres) IMAGEM -> TEXTO.
             elif file.filename.lower().endswith('.pdf'):
                 try:
                     with pdfplumber.open(file) as pdf:
-                        pages_text = []
-
-                        # Processa todas as páginas do PDF.
-                        for page in pdf.pages:
-                            text = page.extract_text()
-                            if text:
-                                pages_text.append(text)
-
-                        # Concatena o texto das páginas em uma única string.
+                        pages_text = [page.extract_text() for page in pdf.pages if page.extract_text()]
                         content = '\n'.join(pages_text)
-
-                # Em caso de erro na leitura do PDF, evita quebra de fluxo.
                 except Exception:
                     content = ''
 
         # --- 2. Fallback: texto digitado manualmente ---
-        # Se não houver arquivo válido, usamos o texto fornecido no formulário.
         if not content:
             content = request.form.get('email_text', '').strip()
 
         # --- 3. Processamento apenas se houver conteúdo válido ---
         if content:
-
-            # Pré-processamento para normalizar o texto.
             processed = preprocess_text(content)
 
-            # Classificação do email (Produtivo/Improdutivo).
-            category = classify_email(processed)
+            # A função agora retorna um dicionário: {'label': ..., 'source': ...}
+            result = classify_email(processed)
 
-            # Geração de resposta automática baseada na categoria.
+            category = result.get('label')
+            source = result.get('source') 
+
             reply = generate_reply(category, content)
 
-    # --- Renderização final ---
-    # Passa os resultados para o template HTML.
+    # --- 4. Renderização final ---
+    # Como as variáveis foram inicializadas no topo, passar 'source=source' é seguro.
     return render_template(
         'index.html',
         category=category,
         reply=reply,
-        content=content
+        content=content,
+        source=source 
     )
 
 if __name__ == '__main__':
