@@ -1,24 +1,25 @@
 # 📧 Mail Classifier Service
 
-Serviço **Fullstack** para classificação automática de e-mails corporativos. O sistema utiliza um pipeline híbrido que combina **IA Generativa (Llama 3.1)** e heurísticas para separar mensagens produtivas de ruídos informativos.
+Serviço **Fullstack** para classificação automática de e-mails corporativos. O sistema utiliza **IA Generativa (Llama 3.1)** para realizar uma análise semântica profunda e separar mensagens que exigem ação (produtivas) de ruídos informativos (improdutivas).
 
 ---
 
 ## 🚀 Funcionalidades
 
-- **Classificação Híbrida:** Integração com LLM de última geração (Llama 3.1 via Groq) para análise de intenção.
-- **Processamento de Arquivos:** Suporte a upload de arquivos `.txt` e `.pdf` (via pdfplumber).
-- **Interface Moderna:** UI responsiva construída com Tailwind CSS, incluindo feedbacks de carregamento e seleção de arquivos.
-- **Explicabilidade:** Cada decisão da IA é acompanhada de uma justificativa (`source`) exibida na interface.
+* **Inteligência Contextual:** Classificação baseada em intenção real utilizando o modelo Llama 3.1 (via Groq Cloud).
+* **Saída Estruturada (JSON):** Garantia de integração entre IA e Backend através de respostas formatadas via *System Prompting*.
+* **Processamento de Arquivos:** Suporte a upload de arquivos `.txt` e `.pdf` (via pdfplumber).
+* **Interface Moderna:** UI responsiva construída com Tailwind CSS, incluindo estados de carregamento e feedback dinâmico de arquivos.
+* **Explicabilidade:** Cada classificação é acompanhada de uma justificativa gerada pela própria IA.
 
 ---
 
 ## 🛠️ Tecnologias
 
-- **Backend:** Python 3.9+, Flask, Groq SDK, PDFPlumber.
-- **IA:** Llama 3.1-8b-instant (Modelo SOTA de baixa latência).
-- **Frontend:** HTML5, Tailwind CSS, Vanilla JavaScript.
-- **Segurança:** Gestão de variáveis de ambiente com `python-dotenv`.
+* **Backend:** Python 3.9+, Flask, Groq SDK, PDFPlumber.
+* **IA:** Llama 3.1-8b-instant (Modelo SOTA de baixíssima latência).
+* **Frontend:** HTML5, Tailwind CSS, Vanilla JavaScript.
+* **Segurança:** Gestão de variáveis de ambiente com `python-dotenv`.
 
 ---
 
@@ -29,7 +30,6 @@ mail-classifier/
 ├── backend/
 │   ├── app.py                 # Rotas Flask e lógica de upload
 │   ├── ai_service.py          # Integração com Llama 3.1 e Prompt Engineering
-│   ├── nlp_utils.py           # Utilitários de limpeza de texto
 │   ├── .env                   # Chaves de API (não versionado)
 │   └── requirements.txt       # Dependências
 └── frontend/                  # Templates e recursos estáticos
@@ -48,7 +48,7 @@ Crie uma conta gratuita em [Groq Cloud](https://console.groq.com/) e gere sua `A
 
 ```bash
 # Clone o projeto
-git clone [https://github.com/euwalteraugusto/mail-classifier.git](https://github.com/euwalteraugusto/mail-classifier.git)
+git clone https://github.com/euwalteraugusto/mail-classifier.git
 cd mail-classifier/backend
 
 # Crie o ambiente virtual e instale as dependências
@@ -78,19 +78,18 @@ Acesse: `http://localhost:5000`
 
 ---
 
-## 📊 Pipeline de Decisão
+## 📊 Fluxo de Decisão
 
-O sistema analisa o e-mail em dois níveis:
+O sistema processa a entrada (texto ou arquivo) e a submete ao motor de IA:
 
-1. **Heurística:** Filtra mensagens triviais ou curtas demais para economizar tokens e latência.
-2. **LLM (Llama 3.1):** Realiza a interpretação semântica profunda da mensagem, identificando se há necessidade de ação (Produtivo) ou se é apenas informativo/saudação (Improdutivo).
+1. **Análise de Intenção:** O LLM avalia se a mensagem contém solicitações de ação, dúvidas técnicas, prazos ou documentos anexos.
+2. **Triagem de Ruído:** Mensagens que contêm apenas saudações, confirmações simples ou notificações automáticas são marcadas como **Improdutivas**.
+3. **Geração de Resposta:** O sistema sugere uma ação imediata baseada na categoria identificada.
 
 ---
 
 ## 👤 Autor
 
 **Walter** - [LinkedIn](https://linkedin.com/in/walteraugusto) | [GitHub](https://github.com/euwalteraugusto)
-
-```
 
 ---
