@@ -222,6 +222,15 @@ button:active {
     }
 }
 
+/* Animação do Spinner (Carregamento no Botão) */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
 /* Responsivo */
 @media (max-width: 600px) {
     .header h1 {

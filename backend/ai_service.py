@@ -1,72 +1,60 @@
-from transformers import pipeline
+import os
+from groq import Groq
+import json
+from dotenv import load_dotenv
 
-# Adicionamos 'Irrelevante' para capturar mensagens aleatórias/spam
-LABELS = ["Produtivo", "Improdutivo", "Irrelevante"]
+# Carrega as variáveis do arquivo .env
+load_dotenv()
 
-classifier = pipeline(
-    "zero-shot-classification",
-    model="facebook/bart-large-mnli"
-)
+# Busca a chave de forma segura
+api_key = os.getenv("GROQ_API_KEY")
+client = Groq(api_key=api_key)
 
-def classify_email(text):
-    normalized_text = text.strip().lower()
+def classify_email(raw_text):
+    """
+    Classificação de e-mail utilizando Llama 3 via Groq.
+    """
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Você é um classificador de e-mails corporativos especializado em triagem de tarefas. "
+                        "Sua saída deve ser EXCLUSIVAMENTE um JSON válido. "
+                        "Classifique o e-mail em: PRODUTIVO ou IMPRODUTIVO.\n\n"
+                        "CRITÉRIOS:\n"
+                        "- PRODUTIVO: Solicitações de ação, prazos, dúvidas sobre projetos, cobranças, agendamentos, "
+                        "documentos anexos importantes ou perguntas sobre status.\n"
+                        "- IMPRODUTIVO: Apenas saudações, agradecimentos, mensagens automáticas de 'out of office', "
+                        "confirmações simples (ex: 'ok', 'ciente') ou conversas casuais.\n\n"
+                        "Exemplo de saída: {\"label\": \"Produtivo\", \"source\": \"Llama 3 (Justificativa curta)\"}"
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": f"Classifique este e-mail: '{raw_text}'"
+                }
+            ],
+            model="llama-3.1-8b-instant", # Modelo rápido e gratuito
+            response_format={"type": "json_object"} # Resposta em JSON
+        )
 
-    # 1. Filtro de Relevância (Heurística Anti-Aleatoriedade)
-    # Se não houver termos mínimos de contexto corporativo ou sinais de pontuação úteis, 
-    # classificamos como irrelevante para poupar processamento.
-    corporate_context = [
-        "segue", "anexo", "encaminho", "solicito", "reunião", "projeto", 
-        "prazo", "contrato", "pagamento", "relatório", "contato", "ajuda",
-        "dúvida", "informação", "prezado", "atenciosamente"
-    ]
-    
-    # Se o texto for curto e não tiver contexto corporativo nem pergunta
-    if len(normalized_text) < 50 and not any(word in normalized_text for word in corporate_context) and "?" not in normalized_text:
-        return {"label": "Improdutivo", "source": "Filtro de Contexto (Mensagem Aleatória)"}
+        # Parse da resposta
+        res_content = json.loads(chat_completion.choices[0].message.content)
+        label_returned = res_content.get("label", "Improdutivo").capitalize() # Garante que seja "Produtivo" ou "Improdutivo"
+        
+        # Padronizando o retorno para o seu app.py
+        return {
+            "label": label_returned,
+            "source": res_content.get("source", "Llama 3 Analysis")
+        }
 
-    # 2. Heurísticas de Curto Alcance (Custo Zero)
-    if len(normalized_text) < 20:
-        return {"label": "Improdutivo", "source": "Heurística (Tamanho Insuficiente)"}
-
-    cordial_expressions = ["obrigado", "obrigada", "ok", "ciente", "entendido", "bom dia", "boa tarde", "boa noite"]
-    if any(normalized_text == expr or normalized_text.startswith(expr + " ") for expr in cordial_expressions):
-        return {"label": "Improdutivo", "source": "Heurística (Cordialidade)"}
-
-    # 3. Heurística de Intenção Ativa
-    response_intent_indicators = [
-        "algum retorno", "aguardamos retorno", "aguardo retorno", "poderia informar",
-        "poderia verificar", "status", "atualização", "posicionamento", "referente a"
-    ]
-    if "?" in normalized_text or any(indicator in normalized_text for indicator in response_intent_indicators):
-        return {"label": "Produtivo", "source": "Heurística (Intenção Direta)"}
-
-    # 4. Classificação Zero-Shot (O "Cérebro" do Sistema)
-    result = classifier(
-        text,
-        candidate_labels=LABELS,
-        hypothesis_template="Este texto é um email corporativo {}."
-    )
-
-    label = result["labels"][0]
-    score = result["scores"][0]
-    score_pct = round(score * 100, 1)
-
-    # Lógica de Refino de Assertividade:
-    # Se a maior probabilidade for 'Irrelevante', ou se a confiança for baixa (< 55%)
-    if label == "Irrelevante" or score < 0.55:
-        return {"label": "Improdutivo", "source": f"Modelo (Baixa Relevância: {score_pct}%)"}
-    
-    return {
-        "label": label if label in ["Produtivo", "Improdutivo"] else "Improdutivo", 
-        "source": f"Modelo Zero-Shot ({score_pct}% de confiança)"
-    }
+    except Exception as e:
+        # Fallback caso a API falhe ou a chave não esteja configurada
+        return {"label": "Improdutivo", "source": f"Erro na API: {str(e)}"}
 
 def generate_reply(category, original_text):
-    """Gera respostas mais condizentes com o novo filtro."""
-    if category == "Improdutivo":
-        return "Mensagem recebida. Não identificamos necessidade de ação imediata. Permanecemos à disposição."
-    
-    return (
-        "Sua mensagem foi classificada como prioritária. "
-        "Iniciamos a análise e retornaremos com um posicionamento em breve."
-    )
+    if category == "Produtivo":
+        return "Sua solicitação foi identificada. Estamos processando as informações."
+    return "Mensagem recebida. Nenhuma ação imediata necessária."

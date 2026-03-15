@@ -4,17 +4,10 @@ from ai_service import classify_email, generate_reply
 import pdfplumber
 import os
 
-# --- Diretório base do backend ---
-# Uso de os.path para obter o caminho absoluto do arquivo atual (__file__).
-# Isso garante que os diretórios de templates e static sejam resolvidos corretamente
-# independentemente de onde o servidor for iniciado.
+# Diretório base do backend
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# --- Configuração do Flask ---
-# Definir explicitamente os diretórios de templates e arquivos estáticos.
-# Separação importante para manter a arquitetura organizada:
-# - frontend/templates → HTML
-# - frontend/static → CSS, JS
+# Configuração do Flask
 app = Flask(
     __name__,
     template_folder=os.path.join(BASE_DIR, "../frontend/templates"),
@@ -23,16 +16,17 @@ app = Flask(
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    # --- 1. Inicialização de variáveis ---
-    # Definir aqui no topo garante que o 'render_template' sempre as encontre,
-    # mesmo que o bloco POST não seja executado (evita UnboundLocalError).
+    """
+    Inicialização de variáveis -> Garante que o 'render_template' sempre as encontre,
+    mesmo que o bloco POST não seja executado (evita UnboundLocalError).
+    """
     category = None
     reply = None
     content = ''
-    source = None  # Inicializamos a nova variável aqui
+    source = None
 
     if request.method == 'POST':
-        # --- 1. Prioridade: arquivo enviado ---
+        # Prioridade: arquivo enviado ---
         file = request.files.get('email_file')
 
         if file and file.filename:
@@ -47,23 +41,23 @@ def index():
                 except Exception:
                     content = ''
 
-        # --- 2. Fallback: texto digitado manualmente ---
+        # Fallback: texto digitado manualmente
         if not content:
             content = request.form.get('email_text', '').strip()
 
-        # --- 3. Processamento apenas se houver conteúdo válido ---
+        # Processamento apenas se houver conteúdo válido
         if content:
-            processed = preprocess_text(content)
-
+            # Limpeza de espaços/ quebras de linha excessivas
+            content = content.strip()
+            
             # A função agora retorna um dicionário: {'label': ..., 'source': ...}
-            result = classify_email(processed)
+            result = classify_email(content)
 
             category = result.get('label')
             source = result.get('source') 
-
             reply = generate_reply(category, content)
 
-    # --- 4. Renderização final ---
+    # --- Renderização final ---
     # Como as variáveis foram inicializadas no topo, passar 'source=source' é seguro.
     return render_template(
         'index.html',
@@ -74,9 +68,4 @@ def index():
     )
 
 if __name__ == '__main__':
-    # Executa o servidor Flask em modo debug.
-    # Modo debug:
-    # - Atualiza automaticamente ao salvar alterações.
-    # - Exibe erros detalhados no navegador.
-    # Em produção, deve ser desativado por questões de segurança
     app.run(debug=False)

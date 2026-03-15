@@ -36,25 +36,30 @@
     <div class="grid lg:grid-cols-5 gap-8">
         <section class="lg:col-span-2 space-y-6">
             <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl">
-                <form method="POST" enctype="multipart/form-data" class="space-y-4">
-                    <div>
-                        <label class="text-xs font-bold uppercase text-slate-500 mb-2 block tracking-widest">Conteúdo do Email</label>
-                        <textarea 
-                            name="email_text" 
-                            class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 outline-none h-48 transition-all text-slate-300"
-                            placeholder="Cole o email aqui..."
-                        >{{ content }}</textarea>
-                    </div>
+        <form id="analysis-form" method="POST" enctype="multipart/form-data" class="space-y-4">
+            <div>
+                <label class="text-xs font-bold uppercase text-slate-500 mb-2 block tracking-widest">Conteúdo do Email</label>
+                    <textarea 
+                        id="email-text" 
+                        name="email_text" 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-sm focus:ring-2 focus:ring-blue-500 outline-none h-48 transition-all text-slate-300"
+                        placeholder="Cole o email aqui..."
+                        >{{ content }}
+                    </textarea>
+            </div>
 
-                    <div class="relative border-2 border-dashed border-slate-700 rounded-xl p-4 text-center hover:border-blue-500 transition-colors group">
-                        <input type="file" name="email_file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                        <span class="text-xs text-slate-400 group-hover:text-blue-400 transition-colors">Arraste ou clique para PDF/TXT</span>
-                    </div>
+            <div id="drop-zone" class="relative border-2 border-dashed border-slate-700 rounded-xl p-4 text-center hover:border-blue-500 transition-colors group">
+                <input type="file" id="file-input" name="email_file" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                <span id="file-name" class="text-xs text-slate-400 group-hover:text-blue-400 transition-colors font-mono">
+                    Arraste ou clique para PDF/TXT
+                </span>
+            </div>
 
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-blue-900/20">
-                        Analisar Mensagem
-                    </button>
-                </form>
+            <button type="submit" id="submit-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all active:scale-95 shadow-lg shadow-blue-900/20 flex justify-center items-center gap-2">
+                <span id="btn-text">Analisar Mensagem</span>
+                <div id="loader" class="hidden w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            </button>
+        </form>
             </div>
         </section>
 

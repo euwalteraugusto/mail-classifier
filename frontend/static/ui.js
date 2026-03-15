@@ -1,59 +1,41 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const form = document.querySelector("#analysis-form");
     const textarea = document.querySelector("#email-text");
     const button = document.querySelector("#submit-btn");
-    const resultCard = document.querySelector(".result-card");
-    const badge = document.querySelector(".badge");
-    const reply = document.querySelector(".reply");
+    const btnText = document.querySelector("#btn-text");
+    const loader = document.querySelector("#loader");
     const fileInput = document.querySelector("#file-input");
-    const uploadLabel = document.querySelector(".file-upload span");
+    const fileNameDisplay = document.querySelector("#file-name");
 
-    if (!textarea || !button) return;
-
-    /* ---------- Estado de carregamento ---------- */
-    function setLoading(isLoading) {
-        button.disabled = isLoading;
-        button.textContent = isLoading ? "Processando..." : "Analisar";
-    }
-
-    /* ---------- Validação visual ---------- */
-    textarea.addEventListener("input", () => {
-        textarea.style.borderColor =
-            textarea.value.trim().length < 10
-                ? "#dc2626"
-                : "var(--primary)";
-    });
-
-    /* ---------- Upload feedback ---------- */
-    if (fileInput && uploadLabel) {
-        fileInput.addEventListener("change", () => {
-            uploadLabel.textContent =
-                fileInput.files.length > 0
-                    ? fileInput.files[0].name
-                    : "Selecionar arquivo";
+    // 1. Feedback de Seleção de Arquivo
+    if (fileInput) {
+        fileInput.addEventListener("change", (e) => {
+            if (fileInput.files.length > 0) {
+                const name = fileInput.files[0].name;
+                const size = (fileInput.files[0].size / 1024).toFixed(1);
+                fileNameDisplay.innerHTML = `📄 <b class="text-blue-400">${name}</b> (${size} KB)`;
+                fileNameDisplay.parentElement.classList.add("border-blue-500", "bg-blue-500/5");
+            } else {
+                fileNameDisplay.textContent = "Arraste ou clique para PDF/TXT";
+                fileNameDisplay.parentElement.classList.remove("border-blue-500", "bg-blue-500/5");
+            }
         });
     }
 
-    /* ---------- Animação do resultado ---------- */
-    function showResult() {
-        if (!resultCard) return;
-
-        resultCard.style.display = "block";
-        resultCard.style.opacity = "0";
-        resultCard.style.transform = "translateY(8px)";
-
-        requestAnimationFrame(() => {
-            resultCard.style.transition = "all 0.35s ease";
-            resultCard.style.opacity = "1";
-            resultCard.style.transform = "translateY(0)";
+    // 2. Estado de Carregamento no Submit
+    if (form) {
+        form.addEventListener("submit", () => {
+            button.disabled = true;
+            button.classList.add("opacity-80", "cursor-not-allowed");
+            btnText.textContent = "IA Processando...";
+            loader.classList.remove("hidden");
         });
-
-        resultCard.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
-    /* ---------- Acessibilidade ---------- */
+    // 3. Atalho Ctrl+Enter
     textarea.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && e.ctrlKey) {
-            button.click();
+            form.submit();
         }
     });
 });
